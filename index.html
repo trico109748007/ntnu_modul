@@ -415,7 +415,7 @@
         margin: 0;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: calc(14.5px * var(--fs-scale));
+        font-size: calc(13.5px * var(--fs-scale));
         line-height: 1.45;
       }
       .card-title-link:hover .card-title {
@@ -647,12 +647,12 @@
         margin: 0 0 16px;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: calc(20px * var(--fs-scale));
+        font-size: calc(17px * var(--fs-scale));
         line-height: 1.55;
       }
 
       .modal-body {
-        font-size: calc(15px * var(--fs-scale));
+        font-size: calc(14px * var(--fs-scale));
         line-height: 2;
         color: var(--ink);
       }
@@ -815,9 +815,20 @@
 
         <!-- 新增：字型大小切換按鈕 -->
         <div class="font-toggle">
-          <button type="button" data-scale="0.9">字體小</button>
-          <button type="button" data-scale="1" class="active">字體中</button>
-          <button type="button" data-scale="1.15">字體大</button>
+          <button type="button" data-scale="0.9" aria-pressed="false">
+            字體小
+          </button>
+          <button
+            type="button"
+            data-scale="1"
+            class="active"
+            aria-pressed="true"
+          >
+            字體中
+          </button>
+          <button type="button" data-scale="1.15" aria-pressed="false">
+            字體大
+          </button>
         </div>
         <div class="layout-toggle">
           <button
@@ -1106,9 +1117,12 @@
         fontBtns.forEach((btn) => {
           btn.addEventListener("click", (e) => {
             // 移除所有按鈕的 active 狀態
-            fontBtns.forEach((b) => b.classList.remove("active"));
-            // 將被點擊的按鈕設為 active
+            fontBtns.forEach((b) => {
+              b.classList.remove("active");
+              b.setAttribute("aria-pressed", "false");
+            });
             e.target.classList.add("active");
+            e.target.setAttribute("aria-pressed", "true");
             // 讀取 data-scale 屬性並更新全域 CSS 變數
             document.documentElement.style.setProperty(
               "--fs-scale",
