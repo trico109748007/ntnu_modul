@@ -742,10 +742,10 @@
           padding: 22px 18px;
         }
         .modal-title {
-          font-size: 17px;
+          font-size: calc(17px * var(--fs-scale));
         }
         .modal-body {
-          font-size: 14px;
+          font-size: calc(14px * var(--fs-scale));
           line-height: 1.9;
         }
         .modal-close {
@@ -761,7 +761,7 @@
           padding: 12px 14px 12px 16px;
         }
         .card-title {
-          font-size: 13.5px;
+          font-size: calc(13.5px * var(--fs-scale));
         }
         .tag,
         .kwtag {
@@ -1115,18 +1115,22 @@
       function setupFontToggle() {
         const fontBtns = document.querySelectorAll(".font-toggle button");
         fontBtns.forEach((btn) => {
-          btn.addEventListener("click", (e) => {
-            // 移除所有按鈕的 active 狀態
+          btn.addEventListener("click", () => {
+            // 移除所有按鈕的 active 狀態；aria-pressed 與 class 必須同步，
+            // 否則螢幕閱讀器讀到的選中項會與畫面不一致
             fontBtns.forEach((b) => {
               b.classList.remove("active");
               b.setAttribute("aria-pressed", "false");
             });
-            e.target.classList.add("active");
-            e.target.setAttribute("aria-pressed", "true");
+            // 將被點擊的按鈕設為 active
+            // 綁定對象改用 btn 而非 e.target：按鈕內若日後加入圖示等子元素，
+            // e.target 會指向該子元素，dataset.scale 將讀到 undefined
+            btn.classList.add("active");
+            btn.setAttribute("aria-pressed", "true");
             // 讀取 data-scale 屬性並更新全域 CSS 變數
             document.documentElement.style.setProperty(
               "--fs-scale",
-              e.target.dataset.scale,
+              btn.dataset.scale,
             );
           });
         });
