@@ -57,6 +57,7 @@
         --shadow-modal: 0 20px 50px rgba(22, 24, 28, 0.25);
 
         --wrap: 1120px;
+        --fs-scale: 1; /* 新增字型縮放倍率 */
       }
 
       * {
@@ -68,7 +69,7 @@
         background: var(--paper);
         color: var(--ink);
         font-family: var(--font-sans);
-        font-size: 14px;
+        font-size: calc(14px * var(--fs-scale));
         line-height: 1.6;
         -webkit-font-smoothing: antialiased;
       }
@@ -143,7 +144,7 @@
       .sub {
         margin: 0;
         max-width: 66ch;
-        font-size: 13.5px;
+        font-size: calc(13.5px * var(--fs-scale));
         line-height: 1.7;
         color: var(--ink-soft);
       }
@@ -414,7 +415,7 @@
         margin: 0;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: 14.5px;
+        font-size: calc(14.5px * var(--fs-scale));
         line-height: 1.45;
       }
       .card-title-link:hover .card-title {
@@ -423,7 +424,7 @@
 
       .card-desc {
         margin: 0;
-        font-size: 12.5px;
+        font-size: calc(12.5px * var(--fs-scale));
         line-height: 1.75;
         color: var(--ink-soft);
       }
@@ -531,7 +532,7 @@
         margin-top: 6px;
         padding-top: 10px;
         border-top: 1px dashed var(--line);
-        font-size: 12.5px;
+        font-size: calc(12.5px * var(--fs-scale));
         line-height: 1.75;
         color: var(--ink-soft);
       }
@@ -562,7 +563,7 @@
         padding: 8px 10px;
         background: var(--accent-soft);
         border-radius: var(--radius);
-        font-size: 12px;
+        font-size: calc(12px * var(--fs-scale));
         line-height: 1.6;
         color: var(--ink);
       }
@@ -646,14 +647,43 @@
         margin: 0 0 16px;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: 20px;
+        font-size: calc(20px * var(--fs-scale));
         line-height: 1.55;
       }
 
       .modal-body {
-        font-size: 15px;
+        font-size: calc(15px * var(--fs-scale));
         line-height: 2;
         color: var(--ink);
+      }
+
+      /* 新增按鈕樣式 (可放置於 .layout-toggle 樣式附近) */
+      .font-toggle {
+        display: flex;
+        height: fit-content;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        overflow: hidden;
+      }
+      .font-toggle button {
+        font-family: var(--font-mono);
+        font-size: 11.5px;
+        letter-spacing: 0.05em;
+        padding: 8px 12px;
+        background: #fff;
+        color: var(--ink-soft);
+        border: none;
+        cursor: pointer;
+      }
+      .font-toggle button + button {
+        border-left: 1px solid var(--line);
+      }
+      .font-toggle button:not(.active):hover {
+        background: var(--paper);
+      }
+      .font-toggle button.active {
+        background: var(--ink);
+        color: #fff;
       }
 
       @media (max-width: 900px) {
@@ -782,6 +812,13 @@
           同時搜尋 PDF 內文
         </label>
         <div class="spacer"></div>
+
+        <!-- 新增：字型大小切換按鈕 -->
+        <div class="font-toggle">
+          <button type="button" data-scale="0.9">字體小</button>
+          <button type="button" data-scale="1" class="active">字體中</button>
+          <button type="button" data-scale="1.15">字體大</button>
+        </div>
         <div class="layout-toggle">
           <button
             type="button"
@@ -997,7 +1034,7 @@
       function setupControls() {
         buildTabs();
         buildDomainFilters();
-
+        setupFontToggle();
         document.getElementById("f-search").addEventListener("input", (e) => {
           state.q = e.target.value.trim().toLowerCase();
           render();
@@ -1063,7 +1100,23 @@
           });
         });
       }
-
+      // 新增設定字型按鈕的函式
+      function setupFontToggle() {
+        const fontBtns = document.querySelectorAll(".font-toggle button");
+        fontBtns.forEach((btn) => {
+          btn.addEventListener("click", (e) => {
+            // 移除所有按鈕的 active 狀態
+            fontBtns.forEach((b) => b.classList.remove("active"));
+            // 將被點擊的按鈕設為 active
+            e.target.classList.add("active");
+            // 讀取 data-scale 屬性並更新全域 CSS 變數
+            document.documentElement.style.setProperty(
+              "--fs-scale",
+              e.target.dataset.scale,
+            );
+          });
+        });
+      }
       function setLayout(mode) {
         state.layout = mode;
         document
