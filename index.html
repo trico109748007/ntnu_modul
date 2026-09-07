@@ -234,6 +234,12 @@
         flex-shrink: 0;
       }
 
+      /* 圓點反白由父層 active 狀態決定，JS 不再逐一維護 dot 的 class。
+        !important 用來壓過模板寫入的 inline background。 */
+      .chip-btn.active .chip-dot {
+        background: #fff !important;
+      }
+
       .toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -1307,21 +1313,23 @@
         el.innerHTML = list
           .map(
             (f) => `
-    <button type="button" class="chip-btn ${f.value === state.subject ? "active" : ""}" data-subject="${f.value}" aria-pressed="${f.value === state.subject}">
-      ${f.color ? `<span class="chip-dot" style="background:${f.color};"></span>` : ""}${f.label}
-    </button>
-  `,
+          <button type="button" class="chip-btn ${f.value === state.subject ? "active" : ""}" data-subject="${f.value}" aria-pressed="${f.value === state.subject}">
+            ${f.color ? `<span class="chip-dot" style="background:${f.color};"></span>` : ""}${f.label}
+          </button>
+        `,
           )
           .join("");
+
+        // 只切換 .chip-btn 的 active／aria-pressed；圓點的反白交由
+        // CSS 的 .chip-btn.active .chip-dot 決定，避免子層 class 需要
+        // 與父層各自維護、且重置時漏清而殘留白點。
         el.querySelectorAll(".chip-btn").forEach((btn) => {
           btn.addEventListener("click", () => {
             state.subject = btn.dataset.subject;
             el.querySelectorAll(".chip-btn").forEach((b) => {
-              b.classList.remove("active");
-              b.setAttribute("aria-pressed", "false");
+              b.classList.toggle("active", b === btn);
+              b.setAttribute("aria-pressed", String(b === btn));
             });
-            btn.classList.add("active");
-            btn.setAttribute("aria-pressed", "true");
             render();
           });
         });
