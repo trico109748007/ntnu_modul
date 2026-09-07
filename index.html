@@ -1193,14 +1193,11 @@
               d.description
             ).toLowerCase();
             const titleHit = hay.includes(state.q);
-            if (!titleHit) {
-              if (state.fulltext) {
-                pageMatch = findPageMatch(d.file, state.q);
-                if (!pageMatch) continue;
-              } else {
-                continue;
-              }
-            }
+            // 勾選「含內文」時一律查全文，不因後設欄位（標題／標籤／描述）已命中而短路。
+            // 否則主題最相關的模組（例如搜「機率」時的 m0901）反而看不到內文佐證片段。
+            if (state.fulltext) pageMatch = findPageMatch(d.file, state.q);
+            // 後設欄位與內文任一命中即保留；篩選結果筆數與修改前一致，差別僅在片段是否顯示。
+            if (!titleHit && !pageMatch) continue;
           }
           filtered.push({ ...d, pageMatch });
         }
