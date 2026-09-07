@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="app-version" content="1.5" />
+    <meta name="app-version" content="1.6" />
     <title>課程模組導覽系統與資源索引</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -914,14 +914,21 @@
       const FIREBASE_BUCKET = "upload-2a184.appspot.com";
       const DATA_FOLDER = "data";
 
-      // Storage 對未指定 Cache-Control 的物件回 max-age=3600，且 Console 上傳
-      // 無法設定該標頭。以 query 參數破壞快取（每次載入頁面產生一組新值），
-      // 資料更新後不必等一小時。cache:"no-cache" 只作用於瀏覽器快取，對此無效。
-      const CACHE_BUST = Date.now();
+      // data/ 的 JSON 由 upload_module.py 上傳，物件帶
+      // Cache-Control: public, max-age=0, must-revalidate。瀏覽器每次載入
+      // 都會發條件式請求，內容未變更時回 304 只傳標頭。
+      //
+      // 舊作法以 Date.now() 讓每個網址成為唯一值，等於繞過快取全量下載；
+      // pages.json 是全文層資料，重複載入的成本集中在此。
+      //
+      // 退路：若 data/ 的 JSON 改回 Console 上傳（無法設定標頭，
+      // 物件回 max-age=3600 且無 revalidate），將此常數設為 true。
+      const NEED_CACHE_BUST = false;
 
       function fbUrl(filename) {
         const path = encodeURIComponent(`${DATA_FOLDER}/${filename}`);
-        return `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${path}?alt=media&v=${CACHE_BUST}`;
+        const url = `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${path}?alt=media`;
+        return NEED_CACHE_BUST ? `${url}&v=${Date.now()}` : url;
       }
 
       const URLS = {
