@@ -59,10 +59,13 @@
         --shadow-modal: 0 20px 50px rgba(22, 24, 28, 0.25);
 
         --wrap: 1120px;
-        --fs-scale: 1; /* 全域基準，恆為 1；卡片與彈窗另由 --card-scale 控制 */
-        --card-scale: 1; /* 卡片／彈窗內文字級倍率 */
+        --fs-scale: 1;
+        /* 全域基準，恆為 1；卡片與彈窗另由 --card-scale 控制 */
+        --card-scale: 1;
+        /* 卡片／彈窗內文字級倍率 */
 
-        --hit: #f6d9a0; /* 檢索命中標示底色 */
+        --hit: #f6d9a0;
+        /* 檢索命中標示底色 */
       }
 
       * {
@@ -98,6 +101,7 @@
       .hidden {
         display: none !important;
       }
+
       .sr-only {
         position: absolute;
         width: 1px;
@@ -109,6 +113,7 @@
         white-space: nowrap;
         border: 0;
       }
+
       .skip-link {
         position: absolute;
         left: 8px;
@@ -121,6 +126,7 @@
         text-decoration: none;
         transition: top 0.15s;
       }
+
       .skip-link:focus {
         top: 8px;
       }
@@ -183,9 +189,11 @@
         border-radius: var(--radius) var(--radius) 0 0;
         cursor: pointer;
       }
+
       .tab:hover {
         color: var(--ink);
       }
+
       .tab.active {
         background: #fff;
         color: var(--ink);
@@ -213,14 +221,17 @@
         border-radius: var(--radius-pill);
         cursor: pointer;
       }
+
       .chip-btn:hover {
         border-color: var(--ink-soft);
       }
+
       .chip-btn.active {
         background: var(--ink2);
         color: #fff;
         border-color: var(--ink2);
       }
+
       .chip-dot {
         width: 7px;
         height: 7px;
@@ -266,6 +277,7 @@
         border: 1px solid var(--line);
         border-radius: var(--radius);
       }
+
       .toolbar input[type="search"],
       .toolbar input[type="text"] {
         min-width: 220px;
@@ -291,6 +303,7 @@
         color: var(--ink-soft);
         cursor: pointer;
       }
+
       .search-scope input {
         width: auto;
         min-width: auto;
@@ -303,6 +316,7 @@
         border-radius: var(--radius);
         overflow: hidden;
       }
+
       .layout-toggle button {
         font-family: var(--font-mono);
         font-size: 11.5px;
@@ -313,12 +327,15 @@
         border: none;
         cursor: pointer;
       }
+
       .layout-toggle button + button {
         border-left: 1px solid var(--line);
       }
+
       .layout-toggle button:not(.active):hover {
         background: var(--paper);
       }
+
       .layout-toggle button.active {
         background: var(--ink2);
         color: #fff;
@@ -335,13 +352,16 @@
         font-size: 11.5px;
         color: var(--ink-soft);
       }
+
       .count-line b {
         color: var(--ink);
         font-weight: 700;
       }
+
       .note {
         color: var(--ink-soft);
       }
+
       .note b {
         color: var(--accent-ink);
         font-weight: 700;
@@ -351,9 +371,11 @@
         display: grid;
         gap: 12px;
       }
+
       .results.grid-mode {
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       }
+
       .results.list-mode {
         grid-template-columns: 1fr;
       }
@@ -377,6 +399,7 @@
           box-shadow 0.18s,
           transform 0.18s;
       }
+
       .card::before {
         content: "";
         position: absolute;
@@ -387,9 +410,11 @@
         background: var(--tagcolor, var(--accent));
         border-radius: 0 2px 2px 0;
       }
+
       .card.clickable {
         cursor: pointer;
       }
+
       .card.clickable:hover {
         border-color: var(--line-strong);
         box-shadow: var(--shadow-lift);
@@ -402,6 +427,7 @@
         align-items: center;
         gap: 8px;
       }
+
       .card-file {
         font-family: var(--font-mono);
         font-size: 10px;
@@ -415,11 +441,13 @@
         align-items: flex-start;
         gap: 10px;
       }
+
       .card-title-link {
         flex: 1;
         color: inherit;
         text-decoration: none;
       }
+
       .card-title {
         margin: 0;
         font-family: var(--font-serif);
@@ -427,6 +455,7 @@
         font-size: calc(14.5px * var(--fs-scale));
         line-height: 1.45;
       }
+
       .card-title-link:hover .card-title {
         color: var(--accent);
       }
@@ -443,6 +472,7 @@
         flex-wrap: wrap;
         gap: 6px;
       }
+
       .tag {
         font-family: var(--font-mono);
         font-size: 10.5px;
@@ -453,14 +483,17 @@
         background: var(--slate-soft);
         color: var(--slate);
       }
+
       .tag.subject {
         background: var(--link-soft);
         color: var(--link);
       }
+
       .tag.grade {
         background: var(--blue-soft);
         color: var(--blue-ink);
       }
+
       .tag.hidden-flag {
         background: var(--red-soft);
         color: var(--red-ink);
@@ -471,6 +504,7 @@
         border-style: dashed;
         opacity: 0.66;
       }
+
       .card.is-hidden:hover {
         opacity: 1;
       }
@@ -480,6 +514,7 @@
         flex-wrap: wrap;
         gap: 5px;
       }
+
       .kwtag {
         font-family: var(--font-mono);
         font-size: 10px;
@@ -509,10 +544,12 @@
         border-radius: var(--radius-pill);
         cursor: pointer;
       }
+
       .mini-btn:hover {
         border-color: var(--ink);
         color: var(--ink);
       }
+
       .mini-btn.open {
         background: var(--ink);
         color: #fff;
@@ -535,11 +572,13 @@
         text-decoration: none;
         white-space: nowrap;
       }
+
       .pdf-link::before {
         content: "↗";
         font-size: 11px;
         line-height: 1;
       }
+
       .pdf-link:hover {
         background: var(--accent);
         color: #fff;
@@ -554,9 +593,11 @@
         line-height: 1.75;
         color: var(--ink-soft);
       }
+
       .panel.open {
         display: block;
       }
+
       .panel h4 {
         margin: 10px 0 4px;
         font-family: var(--font-mono);
@@ -565,13 +606,16 @@
         text-transform: uppercase;
         color: var(--ink);
       }
+
       .panel h4:first-child {
         margin-top: 0;
       }
+
       .panel ul {
         margin: 0 0 4px;
         padding-left: 16px;
       }
+
       .panel li {
         margin-bottom: 2px;
       }
@@ -585,12 +629,14 @@
         line-height: 1.6;
         color: var(--ink);
       }
+
       .match-snippet b {
         font-family: var(--font-mono);
         font-size: 10.5px;
         letter-spacing: 0.03em;
         color: var(--accent-ink);
       }
+
       mark {
         background: var(--hit);
         color: var(--ink);
@@ -618,12 +664,14 @@
         padding: 24px;
         background: rgba(22, 24, 28, 0.55);
       }
+
       .modal-overlay.hidden {
         display: none;
       }
 
       .modal-box {
-        --fs-scale: var(--card-scale); /* 同 .card，彈窗內文一併跟隨字級切換 */
+        --fs-scale: var(--card-scale);
+        /* 同 .card，彈窗內文一併跟隨字級切換 */
         position: relative;
         width: 100%;
         max-width: 680px;
@@ -649,6 +697,7 @@
         border-radius: var(--radius-pill);
         cursor: pointer;
       }
+
       .modal-close:hover {
         background: var(--paper);
         border-color: var(--ink-soft);
@@ -685,6 +734,7 @@
         border-radius: var(--radius);
         overflow: hidden;
       }
+
       .font-toggle button {
         font-family: var(--font-mono);
         font-size: 11.5px;
@@ -695,12 +745,15 @@
         border: none;
         cursor: pointer;
       }
+
       .font-toggle button + button {
         border-left: 1px solid var(--line);
       }
+
       .font-toggle button:not(.active):hover {
         background: var(--paper);
       }
+
       .font-toggle button.active {
         background: var(--ink2);
         color: #fff;
@@ -721,6 +774,7 @@
           flex-direction: column;
           align-items: stretch;
         }
+
         .toolbar select,
         .toolbar input[type="search"],
         .toolbar input[type="text"],
@@ -728,12 +782,15 @@
           min-width: 0;
           width: 100%;
         }
+
         .toolbar .spacer {
           display: none;
         }
+
         .layout-toggle {
           width: 100%;
         }
+
         .layout-toggle button {
           flex: 1;
         }
@@ -742,6 +799,7 @@
           padding: 7px 11px 6px;
           font-size: 12px;
         }
+
         .chip-btn {
           padding: 5px 10px;
           font-size: 11px;
@@ -755,19 +813,23 @@
           align-items: flex-start;
           padding: 12px;
         }
+
         .modal-box {
           max-width: 100%;
           max-height: 92vh;
           margin-top: 16px;
           padding: 22px 18px;
         }
+
         .modal-title {
           font-size: calc(17px * var(--fs-scale));
         }
+
         .modal-body {
           font-size: calc(14px * var(--fs-scale));
           line-height: 1.9;
         }
+
         .modal-close {
           top: 12px;
           right: 12px;
@@ -780,9 +842,11 @@
         .card {
           padding: 12px 14px 12px 16px;
         }
+
         .card-title {
           font-size: calc(13.5px * var(--fs-scale));
         }
+
         .tag,
         .kwtag {
           font-size: 10px;
@@ -793,12 +857,14 @@
         * {
           transition: none !important;
         }
+
         .card.clickable:hover {
           transform: none;
         }
       }
     </style>
   </head>
+
   <body>
     <a class="skip-link" href="#main">跳到主要內容</a>
     <main class="wrap" id="main">
@@ -851,15 +917,15 @@
           </button>
         </div>
         <div class="layout-toggle">
+          <button type="button" id="btn-grid" aria-pressed="false">卡片</button>
           <button
             type="button"
-            id="btn-grid"
+            id="btn-list"
             class="active"
             aria-pressed="true"
           >
-            卡片
+            清單
           </button>
-          <button type="button" id="btn-list" aria-pressed="false">清單</button>
         </div>
       </div>
 
@@ -870,7 +936,7 @@
 
       <h2 id="results-heading" class="sr-only">檢索結果</h2>
       <div
-        class="results grid-mode"
+        class="results list-mode"
         id="results"
         role="region"
         aria-labelledby="results-heading"
@@ -979,7 +1045,7 @@
         grade: "全部",
         subject: "全部",
         q: "",
-        layout: "grid",
+        layout: "list",
         fulltext: false,
       };
       const openIndicators = new Set();
@@ -1259,6 +1325,9 @@
         document
           .getElementById("btn-list")
           .addEventListener("click", () => setLayout("list"));
+        // 以 state.layout 為唯一真值來源，啟動時同步按鈕與容器 class，
+        // 避免靜態標記與 state 初值日後再度分歧。
+        setLayout(state.layout);
       }
 
       function buildTabs() {
