@@ -782,6 +782,10 @@
           display: none;
         }
 
+        .ctl-group {
+          width: 100%;
+        }
+
         .layout-toggle {
           width: 100%;
         }
@@ -866,6 +870,14 @@
         }
       }
 
+      /* label + toggle 群組：群組內垂直置中，群組本身仍靠底對齊 */
+      .ctl-group {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: fit-content;
+      }
+
       .ctl-label {
         font-family: var(--font-mono);
         font-size: 13px;
@@ -874,7 +886,8 @@
         color: var(--ink-soft);
         font-weight: 500;
         min-width: 44px;
-        line-height: 26px;
+        line-height: 1; /* 原 26px 會撐出額外盒高，改為 1 */
+        white-space: nowrap;
       }
     </style>
   </head>
@@ -907,16 +920,20 @@
         <div class="spacer"></div>
 
         <!-- 新增：字型大小切換按鈕 -->
-        <span class="ctl-label" style="min-width: auto">字級</span>
-        <div class="font-toggle">
-          <button type="button" data-scale="0.9" aria-pressed="false">小</button>
-          <button type="button" data-scale="1" class="active" aria-pressed="true">中</button>
-          <button type="button" data-scale="1.15" aria-pressed="false">大</button>
+        <div class="ctl-group">
+          <span class="ctl-label" style="min-width: auto">字級</span>
+          <div class="font-toggle">
+            <button type="button" data-scale="0.9" aria-pressed="false">小</button>
+            <button type="button" data-scale="1" class="active" aria-pressed="true">中</button>
+            <button type="button" data-scale="1.15" aria-pressed="false">大</button>
+          </div>
         </div>
-        <span class="ctl-label" style="min-width: auto">顯示方式</span>
-        <div class="layout-toggle">
-          <button type="button" id="btn-grid" aria-pressed="false">卡片</button>
-          <button type="button" id="btn-list" class="active" aria-pressed="true">清單</button>
+        <div class="ctl-group">
+          <span class="ctl-label" style="min-width: auto">顯示方式</span>
+          <div class="layout-toggle">
+            <button type="button" id="btn-grid" aria-pressed="false">卡片</button>
+            <button type="button" id="btn-list" class="active" aria-pressed="true">清單</button>
+          </div>
         </div>
       </div>
 
