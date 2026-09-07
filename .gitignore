@@ -1,0 +1,7 @@
+# Prettier 個人設定
+.prettierrc
+.prettierrc.*
+.prettierignore
+prettier.config.js
+prettier.config.cjs
+prettier.config.mjs

@@ -7,10 +7,7 @@
     <title>課程模組導覽系統與資源索引</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap"
-      rel="stylesheet"
-    />
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
     <style>
       /* =========================================================================
    補強課程模組｜共用樣式表 v1
@@ -45,9 +42,7 @@
         --blue-ink: #2f4fb0;
 
         --font-serif: "Noto Serif TC", "Songti TC", serif;
-        --font-sans:
-          "Noto Sans TC", system-ui, "PingFang TC", "Microsoft JhengHei",
-          sans-serif;
+        --font-sans: "Noto Sans TC", system-ui, "PingFang TC", "Microsoft JhengHei", sans-serif;
         --font-mono: "JetBrains Mono", ui-monospace, "Consolas", monospace;
 
         --radius: 4px;
@@ -871,10 +866,7 @@
       <header>
         <p class="eyebrow">補強課程模組 · 課程導覽與資源索引</p>
         <h1>課程模組導覽系統</h1>
-        <p class="sub">
-          依領域、年級與關鍵字篩選課程模組。點卡片可展開完整說明，點「課程指標」可查看指標，或勾選「同時搜尋
-          PDF 內文」做全文檢索。
-        </p>
+        <p class="sub">依領域、年級與關鍵字篩選課程模組。點卡片可展開完整說明，點「課程指標」可查看指標，或勾選「同時搜尋 PDF 內文」做全文檢索。</p>
       </header>
 
       <!-- 年級／系列篩選 -->
@@ -887,11 +879,7 @@
       <div class="toolbar">
         <div class="field">
           <label for="f-search">關鍵字／標題搜尋</label>
-          <input
-            type="search"
-            id="f-search"
-            placeholder="例如：畢氏定理、Phonics…"
-          />
+          <input type="search" id="f-search" placeholder="例如：畢氏定理、Phonics…" />
         </div>
         <label class="search-scope">
           <input type="checkbox" id="f-fulltext" />
@@ -901,31 +889,13 @@
 
         <!-- 新增：字型大小切換按鈕 -->
         <div class="font-toggle">
-          <button type="button" data-scale="0.9" aria-pressed="false">
-            字體小
-          </button>
-          <button
-            type="button"
-            data-scale="1"
-            class="active"
-            aria-pressed="true"
-          >
-            字體中
-          </button>
-          <button type="button" data-scale="1.15" aria-pressed="false">
-            字體大
-          </button>
+          <button type="button" data-scale="0.9" aria-pressed="false">字體小</button>
+          <button type="button" data-scale="1" class="active" aria-pressed="true">字體中</button>
+          <button type="button" data-scale="1.15" aria-pressed="false">字體大</button>
         </div>
         <div class="layout-toggle">
           <button type="button" id="btn-grid" aria-pressed="false">卡片</button>
-          <button
-            type="button"
-            id="btn-list"
-            class="active"
-            aria-pressed="true"
-          >
-            清單
-          </button>
+          <button type="button" id="btn-list" class="active" aria-pressed="true">清單</button>
         </div>
       </div>
 
@@ -935,41 +905,21 @@
       </p>
 
       <h2 id="results-heading" class="sr-only">檢索結果</h2>
-      <div
-        class="results list-mode"
-        id="results"
-        role="region"
-        aria-labelledby="results-heading"
-      ></div>
+      <div class="results list-mode" id="results" role="region" aria-labelledby="results-heading"></div>
 
-      <footer>
-        國立臺灣師範大學教育學系教育專業發展中心 ·
-        國民中小學學習扶助教師增能諮詢輔導暨多元補強課程模組推動計畫
-      </footer>
+      <footer>國立臺灣師範大學教育學系教育專業發展中心 · 國民中小學學習扶助教師增能諮詢輔導暨多元補強課程模組推動計畫</footer>
     </main>
 
     <!-- 閱讀彈出視窗 -->
     <div class="modal-overlay hidden" id="modalOverlay">
-      <div
-        class="modal-box"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="modalTitle"
-        tabindex="-1"
-      >
-        <button class="modal-close" id="modalCloseBtn" aria-label="關閉">
-          ✕
-        </button>
+      <div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="modalTitle" tabindex="-1">
+        <button class="modal-close" id="modalCloseBtn" aria-label="關閉">✕</button>
         <div class="modal-header-row">
           <span class="tag" id="modalId"></span>
-          <a
-            class="pdf-link"
-            id="modalPdfLink"
-            href="#"
-            target="_blank"
-            rel="noopener"
-            >開啟 PDF<span class="sr-only">（PDF，另開新視窗）</span></a
-          >
+          <a class="pdf-link" id="modalPdfLink" href="#" target="_blank" rel="noopener">
+            開啟 PDF
+            <span class="sr-only">（PDF，另開新視窗）</span>
+          </a>
         </div>
         <h2 class="modal-title" id="modalTitle">模組詳細內容</h2>
         <div class="modal-body" id="modalBody"></div>
@@ -1019,8 +969,7 @@
 
       // 覆核模式：網址加 ?showhidden=1 時保留未上架模組，並加註記號。
       // 用於上架前確認內容，一般使用者不會觸發。
-      const SHOW_HIDDEN =
-        new URLSearchParams(location.search).get("showhidden") === "1";
+      const SHOW_HIDDEN = new URLSearchParams(location.search).get("showhidden") === "1";
 
       const IND_ORDER = ["學習內容", "學習表現", "基本學習內容"];
       const SUBJECT_COLOR = {
@@ -1113,11 +1062,7 @@
         let html = "",
           cur = 0;
         for (const [a, b] of spans) {
-          html +=
-            esc(src.slice(cur, a)) +
-            "<mark>" +
-            esc(src.slice(a, b)) +
-            "</mark>";
+          html += esc(src.slice(cur, a)) + "<mark>" + esc(src.slice(a, b)) + "</mark>";
           cur = b;
         }
         return html + esc(src.slice(cur));
@@ -1127,11 +1072,7 @@
       // 未加快取前，每次按鍵都要對全部記錄重建串接字串並正規化。
       function hayOf(d) {
         if (d._hay) return d._hay;
-        d._hay = norm(
-          [d.title, (d.tags || []).join(" "), d.file, d.description || ""].join(
-            " ",
-          ),
-        );
+        d._hay = norm([d.title, (d.tags || []).join(" "), d.file, d.description || ""].join(" "));
         return d._hay;
       }
 
@@ -1152,8 +1093,7 @@
       ];
 
       // 以 label 定址而非索引，短網址未填時該層自然跳過，不會錯位。
-      const linkOf = (links, label) =>
-        (links || []).find((l) => l.label === label && l.url) || null;
+      const linkOf = (links, label) => (links || []).find((l) => l.label === label && l.url) || null;
 
       const linkHealthCache = new Map(); // url -> boolean，同一網址同一 session 只探測一次
 
@@ -1206,15 +1146,7 @@
         document.addEventListener("click", async (e) => {
           const a = e.target.closest("a[data-resolve]");
           if (!a) return;
-          if (
-            e.defaultPrevented ||
-            e.button !== 0 ||
-            e.metaKey ||
-            e.ctrlKey ||
-            e.shiftKey ||
-            e.altKey
-          )
-            return;
+          if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
           const d = DATA.find((m) => String(m.id) === a.dataset.resolve);
           if (!d || !d.links) return; // 找不到資料就讓靜態 href 自己作用
           e.preventDefault();
@@ -1225,9 +1157,7 @@
             if (url) {
               window.open(url, "_blank", "noopener");
             } else {
-              alert(
-                "目前所有連結來源（學校空間、Firebase、短網址服務）暫時都無法連線，請稍後再試。",
-              );
+              alert("目前所有連結來源（學校空間、Firebase、短網址服務）暫時都無法連線，請稍後再試。");
             }
           } finally {
             delete a.dataset.busy;
@@ -1241,12 +1171,8 @@
         try {
           // pages.json（PDF 全文層）不在此預載：多數使用者不會勾選內文檢索，
           // 預載等於每次進站都拉一份最大的檔案。改由 ensurePages() 按需取得。
-          const [dataRes, indicatorsRes] = await Promise.all([
-            fetch(URLS.data),
-            fetch(URLS.indicators),
-          ]);
-          if (!dataRes.ok || !indicatorsRes.ok)
-            throw new Error("主要資料載入失敗");
+          const [dataRes, indicatorsRes] = await Promise.all([fetch(URLS.data), fetch(URLS.indicators)]);
+          if (!dataRes.ok || !indicatorsRes.ok) throw new Error("主要資料載入失敗");
 
           const raw = await dataRes.json();
           // 單一過濾點：在此濾除未上架模組後，下游的年級分頁、領域篩選、
@@ -1312,35 +1238,22 @@
             render();
           }, 140);
         });
-        document
-          .getElementById("f-fulltext")
-          .addEventListener("change", (e) => {
-            state.fulltext = e.target.checked;
-            if (state.fulltext && state.q) ensurePages();
-            render();
-          });
-        document
-          .getElementById("btn-grid")
-          .addEventListener("click", () => setLayout("grid"));
-        document
-          .getElementById("btn-list")
-          .addEventListener("click", () => setLayout("list"));
+        document.getElementById("f-fulltext").addEventListener("change", (e) => {
+          state.fulltext = e.target.checked;
+          if (state.fulltext && state.q) ensurePages();
+          render();
+        });
+        document.getElementById("btn-grid").addEventListener("click", () => setLayout("grid"));
+        document.getElementById("btn-list").addEventListener("click", () => setLayout("list"));
         // 以 state.layout 為唯一真值來源，啟動時同步按鈕與容器 class，
         // 避免靜態標記與 state 初值日後再度分歧。
         setLayout(state.layout);
       }
 
       function buildTabs() {
-        const list = GRADE_ORDER.filter(
-          (g) => g === "全部" || DATA.some((d) => d.grade === g),
-        );
+        const list = GRADE_ORDER.filter((g) => g === "全部" || DATA.some((d) => d.grade === g));
         const el = document.getElementById("tabs");
-        el.innerHTML = list
-          .map(
-            (g) =>
-              `<button type="button" class="tab ${g === state.grade ? "active" : ""}" data-grade="${g}" aria-pressed="${g === state.grade}">${g}</button>`,
-          )
-          .join("");
+        el.innerHTML = list.map((g) => `<button type="button" class="tab ${g === state.grade ? "active" : ""}" data-grade="${g}" aria-pressed="${g === state.grade}">${g}</button>`).join("");
         el.querySelectorAll(".tab").forEach((btn) => {
           btn.addEventListener("click", () => {
             state.grade = btn.dataset.grade;
@@ -1352,9 +1265,7 @@
       function buildDomainFilters() {
         const el = document.getElementById("domainFilterBar");
         const present = new Set(DATA.map((d) => d.subject));
-        const list = DOMAIN_FILTERS.filter(
-          (f) => f.value === "全部" || present.has(f.value),
-        );
+        const list = DOMAIN_FILTERS.filter((f) => f.value === "全部" || present.has(f.value));
         el.innerHTML = list
           .map(
             (f) => `
@@ -1395,27 +1306,16 @@
             btn.setAttribute("aria-pressed", "true");
             // 只改 --card-scale：實際套用發生在 .card / .modal-box 內部的
             // --fs-scale 覆寫，頁首、工具列、頁尾維持原字級不受影響。
-            document.documentElement.style.setProperty(
-              "--card-scale",
-              btn.dataset.scale,
-            );
+            document.documentElement.style.setProperty("--card-scale", btn.dataset.scale);
           });
         });
       }
       function setLayout(mode) {
         state.layout = mode;
-        document
-          .getElementById("btn-grid")
-          .classList.toggle("active", mode === "grid");
-        document
-          .getElementById("btn-list")
-          .classList.toggle("active", mode === "list");
-        document
-          .getElementById("btn-grid")
-          .setAttribute("aria-pressed", mode === "grid");
-        document
-          .getElementById("btn-list")
-          .setAttribute("aria-pressed", mode === "list");
+        document.getElementById("btn-grid").classList.toggle("active", mode === "grid");
+        document.getElementById("btn-list").classList.toggle("active", mode === "list");
+        document.getElementById("btn-grid").setAttribute("aria-pressed", mode === "grid");
+        document.getElementById("btn-list").setAttribute("aria-pressed", mode === "list");
         const results = document.getElementById("results");
         results.classList.toggle("grid-mode", mode === "grid");
         results.classList.toggle("list-mode", mode === "list");
@@ -1444,10 +1344,7 @@
           const rawSlice = pg.t.slice(start, end).replace(/\n+/g, " ");
           first = {
             page: pg.p,
-            snippet:
-              (start > 0 ? "…" : "") +
-              mark(rawSlice, q) +
-              (end < pg.t.length ? "…" : ""),
+            snippet: (start > 0 ? "…" : "") + mark(rawSlice, q) + (end < pg.t.length ? "…" : ""),
           };
         }
         return first ? { ...first, total } : null;
@@ -1462,8 +1359,7 @@
         const indicatorPanelId = `panel-${d.file.replace(".pdf", "")}`;
         const isOpen = openIndicators.has(d.file);
         const descText = d.description || "";
-        const descPreview =
-          descText.length > 80 ? descText.substring(0, 80) + "..." : descText;
+        const descPreview = descText.length > 80 ? descText.substring(0, 80) + "..." : descText;
 
         return `
   <div class="card clickable ${isHidden(d) ? "is-hidden" : ""}" data-id="${esc(d.id)}" style="--tagcolor:${SUBJECT_COLOR[d.subject] || "var(--accent)"}">
@@ -1520,10 +1416,7 @@
         const filtered = [];
         for (const d of DATA) {
           if (state.grade !== "全部") {
-            const matchesGrade =
-              d.grade === state.grade ||
-              (d.grade === UNIVERSAL_GRADE &&
-                UNIVERSAL_APPLIES_TO.includes(state.grade));
+            const matchesGrade = d.grade === state.grade || (d.grade === UNIVERSAL_GRADE && UNIVERSAL_APPLIES_TO.includes(state.grade));
             if (!matchesGrade) continue;
           }
           if (state.subject !== "全部" && d.subject !== state.subject) continue;
@@ -1540,9 +1433,7 @@
           filtered.push({ ...d, pageMatch });
         }
 
-        document.getElementById("count-text").textContent =
-          `共 ${filtered.length} / ${DATA.length} 筆資源` +
-          (PAGES_LOADING ? "　載入 PDF 內文中…" : "");
+        document.getElementById("count-text").textContent = `共 ${filtered.length} / ${DATA.length} 筆資源` + (PAGES_LOADING ? "　載入 PDF 內文中…" : "");
 
         const results = document.getElementById("results");
         if (filtered.length === 0) {
@@ -1581,15 +1472,12 @@
       function closeModal() {
         if (modalOverlay.classList.contains("hidden")) return;
         modalOverlay.classList.add("hidden");
-        if (lastTrigger && typeof lastTrigger.focus === "function")
-          lastTrigger.focus();
+        if (lastTrigger && typeof lastTrigger.focus === "function") lastTrigger.focus();
       }
 
       modalOverlay.addEventListener("keydown", (e) => {
         if (e.key !== "Tab") return;
-        const f = modalOverlay.querySelectorAll(
-          'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-        );
+        const f = modalOverlay.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
         if (!f.length) return;
         const first = f[0],
           last = f[f.length - 1];
