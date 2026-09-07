@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="app-version" content="1.4" />
+    <meta name="app-version" content="1.5" />
     <title>課程模組導覽系統與資源索引</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -59,7 +59,10 @@
         --shadow-modal: 0 20px 50px rgba(22, 24, 28, 0.25);
 
         --wrap: 1120px;
-        --fs-scale: 1; /* 新增字型縮放倍率 */
+        --fs-scale: 1; /* 全域基準，恆為 1；卡片與彈窗另由 --card-scale 控制 */
+        --card-scale: 1; /* 卡片／彈窗內文字級倍率 */
+
+        --hit: #f6d9a0; /* 檢索命中標示底色 */
       }
 
       * {
@@ -356,6 +359,10 @@
       }
 
       .card {
+        /* 只在卡片內改寫 --fs-scale：CSS 變數沿 DOM 繼承，
+           底下所有 calc(px * var(--fs-scale)) 的字級一併縮放，
+           而頁首、工具列、頁尾仍讀 :root 的 1，版面不會被放大撐破。 */
+        --fs-scale: var(--card-scale);
         position: relative;
         display: flex;
         flex-direction: column;
@@ -584,8 +591,9 @@
         letter-spacing: 0.03em;
         color: var(--accent-ink);
       }
-      .match-snippet mark {
-        background: #f6d9a0;
+      mark {
+        background: var(--hit);
+        color: var(--ink);
         padding: 0 1px;
         border-radius: 2px;
       }
@@ -615,6 +623,7 @@
       }
 
       .modal-box {
+        --fs-scale: var(--card-scale); /* 同 .card，彈窗內文一併跟隨字級切換 */
         position: relative;
         width: 100%;
         max-width: 680px;
@@ -905,9 +914,14 @@
       const FIREBASE_BUCKET = "upload-2a184.appspot.com";
       const DATA_FOLDER = "data";
 
+      // Storage 對未指定 Cache-Control 的物件回 max-age=3600，且 Console 上傳
+      // 無法設定該標頭。以 query 參數破壞快取（每次載入頁面產生一組新值），
+      // 資料更新後不必等一小時。cache:"no-cache" 只作用於瀏覽器快取，對此無效。
+      const CACHE_BUST = Date.now();
+
       function fbUrl(filename) {
         const path = encodeURIComponent(`${DATA_FOLDER}/${filename}`);
-        return `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${path}?alt=media`;
+        return `https://firebasestorage.googleapis.com/v0/b/${FIREBASE_BUCKET}/o/${path}?alt=media&v=${CACHE_BUST}`;
       }
 
       const URLS = {
@@ -918,7 +932,8 @@
 
       let DATA = [];
       let INDICATORS = {};
-      let PAGES = {};
+      let PAGES = null; // null = 尚未載入；{} = 載入失敗或空檔
+      let PAGES_LOADING = false;
 
       // -----------------------------------------------------------------------
       // 前台上架控制
@@ -974,6 +989,77 @@
               "'": "&#39;",
             })[c],
         );
+      }
+
+      // -----------------------------------------------------------------------
+      // 檢索正規化
+      //   中文不斷詞，故一律「全形轉半形 → 去掉所有空白 → 轉小寫」後直接
+      //   indexOf。同時產生位置對照表 map：map[i] 為正規化字串第 i 字在原文
+      //   的索引，命中後可換算回原文區間，標示位置不會因刪去空白而偏移。
+      // -----------------------------------------------------------------------
+      function normalize(s) {
+        const out = [],
+          map = [];
+        const str = String(s == null ? "" : s);
+        for (let i = 0; i < str.length; i++) {
+          let ch = str[i];
+          const c = str.charCodeAt(i);
+          if (c === 0x3000) continue; // 全形空白 U+3000
+          if (c >= 0xff01 && c <= 0xff5e) ch = String.fromCharCode(c - 0xfee0);
+          if (/\s/.test(ch)) continue; // 半形空白與換行
+          out.push(ch.toLowerCase());
+          map.push(i);
+        }
+        return { n: out.join(""), map };
+      }
+
+      // 只要正規化字串（建 haystack 用，不需位置）
+      const norm = (s) => normalize(s).n;
+
+      // -----------------------------------------------------------------------
+      // 標示所有命中處，回傳已跳脫的 HTML。
+      //   先切片再逐段 esc()，不對已跳脫字串跑 regex：否則關鍵字含 & < > 時，
+      //   實體字串（&amp;）會被誤配或破壞，標示與跳脫互相打架。
+      // -----------------------------------------------------------------------
+      function mark(text, q) {
+        const src = String(text == null ? "" : text);
+        if (!q) return esc(src);
+        const { n, map } = normalize(src);
+        const nq = norm(q);
+        if (!nq) return esc(src);
+
+        const spans = [];
+        let from = 0,
+          idx;
+        while ((idx = n.indexOf(nq, from)) !== -1) {
+          spans.push([map[idx], map[idx + nq.length - 1] + 1]);
+          from = idx + nq.length;
+        }
+        if (!spans.length) return esc(src);
+
+        let html = "",
+          cur = 0;
+        for (const [a, b] of spans) {
+          html +=
+            esc(src.slice(cur, a)) +
+            "<mark>" +
+            esc(src.slice(a, b)) +
+            "</mark>";
+          cur = b;
+        }
+        return html + esc(src.slice(cur));
+      }
+
+      // 後設欄位 haystack：結果快取在記錄物件的 _hay 上，只算一次。
+      // 未加快取前，每次按鍵都要對全部記錄重建串接字串並正規化。
+      function hayOf(d) {
+        if (d._hay) return d._hay;
+        d._hay = norm(
+          [d.title, (d.tags || []).join(" "), d.file, d.description || ""].join(
+            " ",
+          ),
+        );
+        return d._hay;
       }
 
       // -----------------------------------------------------------------------
@@ -1080,10 +1166,11 @@
         const results = document.getElementById("results");
         results.innerHTML = `<div class="empty">資料載入中…</div>`;
         try {
-          const [dataRes, indicatorsRes, pagesRes] = await Promise.all([
+          // pages.json（PDF 全文層）不在此預載：多數使用者不會勾選內文檢索，
+          // 預載等於每次進站都拉一份最大的檔案。改由 ensurePages() 按需取得。
+          const [dataRes, indicatorsRes] = await Promise.all([
             fetch(URLS.data),
             fetch(URLS.indicators),
-            fetch(URLS.pages),
           ]);
           if (!dataRes.ok || !indicatorsRes.ok)
             throw new Error("主要資料載入失敗");
@@ -1095,11 +1182,6 @@
           const hiddenCount = raw.filter(isHidden).length;
 
           INDICATORS = await indicatorsRes.json();
-          try {
-            PAGES = pagesRes.ok ? await pagesRes.json() : {};
-          } catch (e) {
-            PAGES = {};
-          }
 
           const note = document.getElementById("hidden-note");
           if (SHOW_HIDDEN) {
@@ -1118,18 +1200,50 @@
         }
       }
 
+      // -----------------------------------------------------------------------
+      // 全文層延遲載入
+      //   僅在「勾選內文檢索且已有關鍵字」時觸發。PAGES_LOADING 兼作重入鎖，
+      //   避免 debounce 期間連續輸入重複發請求。失敗時把 PAGES 設為空物件而非
+      //   留 null，否則每次輸入都會再打一次已知會失敗的請求。
+      // -----------------------------------------------------------------------
+      async function ensurePages() {
+        if (PAGES || PAGES_LOADING) return;
+        PAGES_LOADING = true;
+        render(); // 讓筆數列即時顯示載入狀態
+        try {
+          const res = await fetch(URLS.pages);
+          if (!res.ok) throw new Error("pages.json 回應 " + res.status);
+          PAGES = await res.json();
+        } catch (e) {
+          console.error("pages.json 載入失敗", e);
+          PAGES = {};
+        } finally {
+          PAGES_LOADING = false;
+          render();
+        }
+      }
+
       function setupControls() {
         buildTabs();
         buildDomainFilters();
         setupFontToggle();
-        document.getElementById("f-search").addEventListener("input", (e) => {
-          state.q = e.target.value.trim().toLowerCase();
-          render();
+        // 140 ms debounce：逐字輸入時 render() 會對全部記錄重跑篩選與字串比對，
+        // 不節流的話長字詞每多打一個字就多一輪全量重繪。
+        const searchInput = document.getElementById("f-search");
+        let searchTimer = null;
+        searchInput.addEventListener("input", () => {
+          clearTimeout(searchTimer);
+          searchTimer = setTimeout(() => {
+            state.q = searchInput.value.trim();
+            if (state.fulltext && state.q) ensurePages();
+            render();
+          }, 140);
         });
         document
           .getElementById("f-fulltext")
           .addEventListener("change", (e) => {
             state.fulltext = e.target.checked;
+            if (state.fulltext && state.q) ensurePages();
             render();
           });
         document
@@ -1203,9 +1317,10 @@
             // e.target 會指向該子元素，dataset.scale 將讀到 undefined
             btn.classList.add("active");
             btn.setAttribute("aria-pressed", "true");
-            // 讀取 data-scale 屬性並更新全域 CSS 變數
+            // 只改 --card-scale：實際套用發生在 .card / .modal-box 內部的
+            // --fs-scale 覆寫，頁首、工具列、頁尾維持原字級不受影響。
             document.documentElement.style.setProperty(
-              "--fs-scale",
+              "--card-scale",
               btn.dataset.scale,
             );
           });
@@ -1230,27 +1345,36 @@
         results.classList.toggle("list-mode", mode === "list");
       }
 
+      // 回傳首個命中頁的片段與總命中頁數；PAGES 尚未載入時回 null。
+      // 比對走 normalize()，故全形英數、全形空白與斷行都不會漏失。
       function findPageMatch(file, q) {
+        if (!PAGES) return null;
         const pages = PAGES[file];
-        if (!pages || !q) return null;
+        const nq = norm(q);
+        if (!pages || !nq) return null;
+
+        let first = null;
+        let total = 0;
         for (const pg of pages) {
-          const idx = pg.t.toLowerCase().indexOf(q);
-          if (idx !== -1) {
-            const start = Math.max(0, idx - 28);
-            const end = Math.min(pg.t.length, idx + q.length + 28);
-            let snippet =
+          const { n, map } = normalize(pg.t);
+          const idx = n.indexOf(nq);
+          if (idx === -1) continue;
+          total++;
+          if (first) continue; // 後續頁只計數，不再取片段
+          const a = map[idx];
+          const b = map[idx + nq.length - 1] + 1;
+          const start = Math.max(0, a - 28);
+          const end = Math.min(pg.t.length, b + 28);
+          const rawSlice = pg.t.slice(start, end).replace(/\n+/g, " ");
+          first = {
+            page: pg.p,
+            snippet:
               (start > 0 ? "…" : "") +
-              pg.t.slice(start, end) +
-              (end < pg.t.length ? "…" : "");
-            const re = new RegExp(
-              q.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"),
-              "ig",
-            );
-            snippet = esc(snippet).replace(re, (m) => `<mark>${m}</mark>`);
-            return { page: pg.p, snippet };
-          }
+              mark(rawSlice, q) +
+              (end < pg.t.length ? "…" : ""),
+          };
         }
-        return null;
+        return first ? { ...first, total } : null;
       }
 
       function cardHTML(d) {
@@ -1261,10 +1385,9 @@
         })).filter((g) => g.items.length > 0);
         const indicatorPanelId = `panel-${d.file.replace(".pdf", "")}`;
         const isOpen = openIndicators.has(d.file);
+        const descText = d.description || "";
         const descPreview =
-          d.description && d.description.length > 80
-            ? d.description.substring(0, 80) + "..."
-            : d.description;
+          descText.length > 80 ? descText.substring(0, 80) + "..." : descText;
 
         return `
   <div class="card clickable ${isHidden(d) ? "is-hidden" : ""}" data-id="${esc(d.id)}" style="--tagcolor:${SUBJECT_COLOR[d.subject] || "var(--accent)"}">
@@ -1274,7 +1397,7 @@
     </div>
     <div class="card-title-row">
       <a class="card-title-link" href="${esc(primaryLink(d.links))}" data-resolve="${esc(d.id)}" target="_blank" rel="noopener">
-        <h3 class="card-title">${esc(d.title)}</h3>
+        <h3 class="card-title">${mark(d.title, state.q)}</h3>
       </a>
     </div>
     <div class="tags">
@@ -1289,8 +1412,8 @@
         .join("")}
       ${d.tags.length > 5 ? `<span class="kwtag">+${d.tags.length - 5}</span>` : ""}
     </div>
-    <p class="card-desc">${esc(descPreview)}</p>
-    ${d.pageMatch ? `<div class="match-snippet"><b>第 ${d.pageMatch.page} 頁符合：</b><br>${d.pageMatch.snippet}</div>` : ""}
+    <p class="card-desc">${mark(descPreview, state.q)}</p>
+    ${d.pageMatch ? `<div class="match-snippet"><b>第 ${d.pageMatch.page} 頁符合${d.pageMatch.total > 1 ? `（共 ${d.pageMatch.total} 頁）` : ""}：</b><br>${d.pageMatch.snippet}</div>` : ""}
     <div class="card-actions">
       <button type="button" class="mini-btn" data-open="${esc(d.id)}">詳細說明</button>
       ${grouped.length ? `<button type="button" class="mini-btn ${isOpen ? "open" : ""}" data-toggle="${esc(d.file)}" aria-expanded="${isOpen}" aria-controls="${indicatorPanelId}">課程指標（${inds.length}）<span aria-hidden="true">${isOpen ? "▲" : "▼"}</span></button>` : ""}
@@ -1317,6 +1440,7 @@
       function render() {
         buildTabs();
 
+        const nq = norm(state.q); // 每次 render 只正規化一次查詢字串
         const filtered = [];
         for (const d of DATA) {
           if (state.grade !== "全部") {
@@ -1329,17 +1453,8 @@
           if (state.subject !== "全部" && d.subject !== state.subject) continue;
 
           let pageMatch = null;
-          if (state.q) {
-            const hay = (
-              d.title +
-              " " +
-              d.tags.join(" ") +
-              " " +
-              d.file +
-              " " +
-              d.description
-            ).toLowerCase();
-            const titleHit = hay.includes(state.q);
+          if (nq) {
+            const titleHit = hayOf(d).includes(nq);
             // 勾選「含內文」時一律查全文，不因後設欄位（標題／標籤／描述）已命中而短路。
             // 否則主題最相關的模組（例如搜「機率」時的 m0901）反而看不到內文佐證片段。
             if (state.fulltext) pageMatch = findPageMatch(d.file, state.q);
@@ -1350,7 +1465,8 @@
         }
 
         document.getElementById("count-text").textContent =
-          `共 ${filtered.length} / ${DATA.length} 筆資源`;
+          `共 ${filtered.length} / ${DATA.length} 筆資源` +
+          (PAGES_LOADING ? "　載入 PDF 內文中…" : "");
 
         const results = document.getElementById("results");
         if (filtered.length === 0) {
