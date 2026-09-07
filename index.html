@@ -975,17 +975,35 @@
       }
 
       // -----------------------------------------------------------------------
-      // 連結自動切換：依序嘗試「學校空間短網址 → Firebase 短網址 →
-      // 學校空間直連 → Firebase 直連」，找到第一個連得通的就開啟。
-      // 前兩層走短網址（供 supr.link 計點擊），後兩層是直連網址，只在
-      // supr.link 本身也掛掉時才會用到（不計點擊）。
+      // 連結自動切換（v1.4：探測與開啟分離）
+      //   四層順序：學校空間短網址 → Firebase 短網址 → 學校空間直連 →
+      //   Firebase 直連。每層的 open 是實際開啟的網址、probe 是拿來測連通性
+      //   的網址，兩者刻意不同：短網址每被 fetch 一次 supr.link 就計一次點，
+      //   若用短網址自身探測，一次點擊會計兩次。因此前兩層一律改探測對應的
+      //   直連網址（tracked:false），開啟時才走短網址。
+      //   後兩層是直連退路，open 與 probe 同一個網址，本來就不計點。
       // -----------------------------------------------------------------------
+      const LINK_CHAIN = [
+        { open: "school_html", probe: "school_direct" },
+        { open: "firebase_pdf", probe: "firebase_direct" },
+        { open: "school_direct", probe: "school_direct" },
+        { open: "firebase_direct", probe: "firebase_direct" },
+      ];
+
+      // 以 label 定址而非索引，短網址未填時該層自然跳過，不會錯位。
+      const linkOf = (links, label) =>
+        (links || []).find((l) => l.label === label && l.url) || null;
+
       const linkHealthCache = new Map(); // url -> boolean，同一網址同一 session 只探測一次
 
+      // no-cors 讀不到 status，只能測出網路層失敗（DNS／逾時／離線），
+      // 404 與 200 同樣算「通」。用 HEAD 是為了避免探測直連 PDF 時
+      // 在背景把整份檔案拉下來。
       async function probeReachable(url, timeoutMs = 1500) {
         if (linkHealthCache.has(url)) return linkHealthCache.get(url);
         try {
           await fetch(url, {
+            method: "HEAD",
             mode: "no-cors",
             signal: AbortSignal.timeout(timeoutMs),
           });
@@ -997,16 +1015,36 @@
         }
       }
 
-      async function resolveLink(candidates) {
-        for (const c of candidates) {
-          if (await probeReachable(c.url)) return c.url;
+      async function resolveLink(links) {
+        for (const step of LINK_CHAIN) {
+          const open = linkOf(links, step.open);
+          const probe = linkOf(links, step.probe);
+          if (!open || !probe) continue;
+          // 安全閥：probe 一旦指到計點網址就跳過該層，寧可降級也不誤計。
+          if (probe.tracked === true) continue;
+          if (await probeReachable(probe.url)) return open.url;
         }
         return null; // 全部連不通
       }
 
-      function bindResolvedLink(el, candidates) {
-        el.href = candidates[0].url; // 預設值：右鍵複製連結、中鍵開新分頁都仍可用
-        el.addEventListener("click", async (e) => {
+      // 靜態 href 的預設值：取鏈上第一個存在的 open，讓右鍵複製、中鍵開新分頁
+      // 在探測發生前就有正確目標。
+      function primaryLink(links) {
+        for (const step of LINK_CHAIN) {
+          const open = linkOf(links, step.open);
+          if (open) return open.url;
+        }
+        return "#";
+      }
+
+      // 事件委派：全站只掛一個 listener，連結節點本身不綁事件。
+      //   卡片每次 render 重建節點，舊 listener 隨節點消失；但 modal 的
+      //   #modalPdfLink 是常駐節點，逐次綁定會累積 listener，開 N 次 modal
+      //   後點一次就觸發 N 輪探測與 N 個分頁。改委派後兩者都只有一份邏輯。
+      function installLinkDelegation() {
+        document.addEventListener("click", async (e) => {
+          const a = e.target.closest("a[data-resolve]");
+          if (!a) return;
           if (
             e.defaultPrevented ||
             e.button !== 0 ||
@@ -1016,14 +1054,22 @@
             e.altKey
           )
             return;
+          const d = DATA.find((m) => String(m.id) === a.dataset.resolve);
+          if (!d || !d.links) return; // 找不到資料就讓靜態 href 自己作用
           e.preventDefault();
-          const url = await resolveLink(candidates);
-          if (url) {
-            window.open(url, "_blank", "noopener");
-          } else {
-            alert(
-              "目前所有連結來源（學校空間、Firebase、短網址服務）暫時都無法連線，請稍後再試。",
-            );
+          if (a.dataset.busy === "1") return; // 探測期間連點只算一次
+          a.dataset.busy = "1";
+          try {
+            const url = await resolveLink(d.links);
+            if (url) {
+              window.open(url, "_blank", "noopener");
+            } else {
+              alert(
+                "目前所有連結來源（學校空間、Firebase、短網址服務）暫時都無法連線，請稍後再試。",
+              );
+            }
+          } finally {
+            delete a.dataset.busy;
           }
         });
       }
@@ -1222,10 +1268,10 @@
   <div class="card clickable ${isHidden(d) ? "is-hidden" : ""}" data-id="${esc(d.id)}" style="--tagcolor:${SUBJECT_COLOR[d.subject] || "var(--accent)"}">
     <div class="card-top">
       <span class="card-file">${esc(d.file)}</span>
-      <a class="pdf-link" href="${d.links[0].url}" data-linkfor="${esc(d.id)}-pdf" target="_blank" rel="noopener">開啟 PDF<span class="sr-only">（PDF，另開新視窗）</span></a>
+      <a class="pdf-link" href="${esc(primaryLink(d.links))}" data-resolve="${esc(d.id)}" target="_blank" rel="noopener">開啟 PDF<span class="sr-only">（PDF，另開新視窗）</span></a>
     </div>
     <div class="card-title-row">
-      <a class="card-title-link" href="${d.links[0].url}" data-linkfor="${esc(d.id)}-title" target="_blank" rel="noopener">
+      <a class="card-title-link" href="${esc(primaryLink(d.links))}" data-resolve="${esc(d.id)}" target="_blank" rel="noopener">
         <h3 class="card-title">${esc(d.title)}</h3>
       </a>
     </div>
@@ -1310,16 +1356,9 @@
           return;
         }
 
+        // 連結不在此逐一綁定：click 由 installLinkDelegation() 的單一
+        // 委派 handler 處理，靜態 href 已由 cardHTML 寫入 primaryLink。
         results.innerHTML = filtered.map(cardHTML).join("");
-
-        for (const d of filtered) {
-          const pdfEl = results.querySelector(`[data-linkfor="${d.id}-pdf"]`);
-          const titleEl = results.querySelector(
-            `[data-linkfor="${d.id}-title"]`,
-          );
-          if (pdfEl) bindResolvedLink(pdfEl, d.links);
-          if (titleEl) bindResolvedLink(titleEl, d.links);
-        }
       }
 
       /* ---------- Modal 邏輯 ---------- */
@@ -1338,7 +1377,8 @@
         modalId.className = "tag subject";
         modalTitle.textContent = d.title;
         modalBody.textContent = d.description;
-        bindResolvedLink(modalPdfLink, d.links);
+        modalPdfLink.href = primaryLink(d.links);
+        modalPdfLink.dataset.resolve = String(d.id);
         lastTrigger = document.activeElement;
         modalOverlay.classList.remove("hidden");
         modalCloseBtn.focus();
@@ -1400,6 +1440,7 @@
         }
       });
 
+      installLinkDelegation();
       boot();
     </script>
   </body>
