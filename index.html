@@ -415,7 +415,7 @@
         margin: 0;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: calc(13.5px * var(--fs-scale));
+        font-size: calc(14.5px * var(--fs-scale));
         line-height: 1.45;
       }
       .card-title-link:hover .card-title {
@@ -452,9 +452,18 @@
         background: var(--blue-soft);
         color: var(--blue-ink);
       }
-      .tag.inferred {
-        background: var(--slate-soft);
-        color: var(--slate);
+      .tag.hidden-flag {
+        background: var(--red-soft);
+        color: var(--red-ink);
+      }
+
+      /* ?showhidden=1 覆核模式：未上架卡片以虛線框＋降透明度區隔 */
+      .card.is-hidden {
+        border-style: dashed;
+        opacity: 0.66;
+      }
+      .card.is-hidden:hover {
+        opacity: 1;
       }
 
       .card-tags {
@@ -647,12 +656,12 @@
         margin: 0 0 16px;
         font-family: var(--font-serif);
         font-weight: 700;
-        font-size: calc(17px * var(--fs-scale));
+        font-size: calc(20px * var(--fs-scale));
         line-height: 1.55;
       }
 
       .modal-body {
-        font-size: calc(14px * var(--fs-scale));
+        font-size: calc(15px * var(--fs-scale));
         line-height: 2;
         color: var(--ink);
       }
@@ -845,10 +854,7 @@
 
       <p class="count-line">
         <span id="count-text" aria-live="polite" aria-atomic="true"></span>
-        <span class="note" id="inferred-note" style="display: none"
-          ><b>推測標籤</b> =
-          標題／年級依檔名規則推測，非原始資料，請覆核。</span
-        >
+        <span class="note" id="hidden-note" style="display: none"></span>
       </p>
 
       <h2 id="results-heading" class="sr-only">檢索結果</h2>
@@ -911,6 +917,20 @@
       let DATA = [];
       let INDICATORS = {};
       let PAGES = {};
+
+      // -----------------------------------------------------------------------
+      // 前台上架控制
+      //   資料端在 data.json 的模組物件加上 "hidden": true 即從前台移除。
+      //   欄位不存在或為 false 皆視為上架，因此既有資料不必逐筆補欄位。
+      //   欄位名以常數收斂，日後若要改名只需動這一行。
+      // -----------------------------------------------------------------------
+      const HIDE_FIELD = "hidden";
+      const isHidden = (d) => d[HIDE_FIELD] === true;
+
+      // 覆核模式：網址加 ?showhidden=1 時保留未上架模組，並加註記號。
+      // 用於上架前確認內容，一般使用者不會觸發。
+      const SHOW_HIDDEN =
+        new URLSearchParams(location.search).get("showhidden") === "1";
 
       const IND_ORDER = ["學習內容", "學習表現", "基本學習內容"];
       const SUBJECT_COLOR = {
@@ -1020,7 +1040,12 @@
           if (!dataRes.ok || !indicatorsRes.ok)
             throw new Error("主要資料載入失敗");
 
-          DATA = await dataRes.json();
+          const raw = await dataRes.json();
+          // 單一過濾點：在此濾除未上架模組後，下游的年級分頁、領域篩選、
+          // 筆數計算、全文檢索與彈窗查找全部自動一致，毋須各自判斷。
+          DATA = SHOW_HIDDEN ? raw : raw.filter((d) => !isHidden(d));
+          const hiddenCount = raw.filter(isHidden).length;
+
           INDICATORS = await indicatorsRes.json();
           try {
             PAGES = pagesRes.ok ? await pagesRes.json() : {};
@@ -1028,11 +1053,14 @@
             PAGES = {};
           }
 
-          document.getElementById("inferred-note").style.display = DATA.some(
-            (d) => d.inferred,
-          )
-            ? ""
-            : "none";
+          const note = document.getElementById("hidden-note");
+          if (SHOW_HIDDEN) {
+            note.style.display = "";
+            note.innerHTML = `<b>覆核模式</b>：已一併列出 ${hiddenCount} 筆未上架模組（虛線框）。移除網址參數 <code>?showhidden=1</code> 即回到正式檢視。`;
+          } else {
+            note.style.display = "none";
+            note.innerHTML = "";
+          }
 
           setupControls();
           render();
@@ -1191,7 +1219,7 @@
             : d.description;
 
         return `
-  <div class="card clickable" data-id="${esc(d.id)}" style="--tagcolor:${SUBJECT_COLOR[d.subject] || "var(--accent)"}">
+  <div class="card clickable ${isHidden(d) ? "is-hidden" : ""}" data-id="${esc(d.id)}" style="--tagcolor:${SUBJECT_COLOR[d.subject] || "var(--accent)"}">
     <div class="card-top">
       <span class="card-file">${esc(d.file)}</span>
       <a class="pdf-link" href="${d.links[0].url}" data-linkfor="${esc(d.id)}-pdf" target="_blank" rel="noopener">開啟 PDF<span class="sr-only">（PDF，另開新視窗）</span></a>
@@ -1204,7 +1232,7 @@
     <div class="tags">
       <span class="tag subject">${esc(d.subject)}</span>
       <span class="tag grade">${esc(d.grade)}</span>
-      ${d.inferred ? '<span class="tag inferred">推測</span>' : ""}
+      ${isHidden(d) ? '<span class="tag hidden-flag">未上架</span>' : ""}
     </div>
     <div class="card-tags">
       ${d.tags
